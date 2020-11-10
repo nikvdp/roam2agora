@@ -85,6 +85,18 @@ qa = ["flake8 (==3.7.9)"]
 testing = ["Django (<3.1)", "colorama", "docopt", "pytest (>=3.9.0,<5.0.0)"]
 
 [[package]]
+name = "lark"
+version = "0.10.1"
+description = "a modern parsing library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+nearley = ["js2py"]
+regex = ["regex"]
+
+[[package]]
 name = "mypy"
 version = "0.790"
 description = "Optional static typing for Python"
@@ -206,7 +218,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "7caa2632b008b3ec4280b4427ceb742fc8f53a35e2efe606ce7c9aaefbc28197"
+content-hash = "ddb438c63bea93b98061db81e15c10fc0302c19bd3989774b74bf69a8a44293c"
 
 [metadata.files]
 appnope = [
@@ -236,6 +248,10 @@ ipython-genutils = [
 jedi = [
     {file = "jedi-0.17.2-py2.py3-none-any.whl", hash = "sha256:98cc583fa0f2f8304968199b01b6b4b94f469a1f4a74c1560506ca2a211378b5"},
     {file = "jedi-0.17.2.tar.gz", hash = "sha256:86ed7d9b750603e4ba582ea8edc678657fb4007894a12bcf6f4bb97892f31d20"},
+]
+lark = [
+    {file = "lark-0.10.1-py2.py3-none-any.whl", hash = "sha256:eb919a7326a76af36e2e2cb5ac6c1be6723bba83945a0a33e6d533070cbaccc7"},
+    {file = "lark-0.10.1.tar.gz", hash = "sha256:98f2c6f8e41fe601fd103476eb759ac1ad4d3dc8094633133a16cef5a32b0f65"},
 ]
 mypy = [
     {file = "mypy-0.790-cp35-cp35m-macosx_10_6_x86_64.whl", hash = "sha256:bd03b3cf666bff8d710d633d1c56ab7facbdc204d567715cb3b9f85c6e94f669"},
