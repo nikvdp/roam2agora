@@ -6,7 +6,7 @@ authors = ["Nik V <github@nikvdp.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-lark = "^0.10.1"
+click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.790"
