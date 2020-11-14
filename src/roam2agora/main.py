@@ -10,7 +10,7 @@ import logging
 
 import click
 
-from roam_types import from_roam_export, Page, Block
+from .roam_types import from_roam_export, Page, Block
 
 
 INLINE_TAG_RE: re.Pattern = re.compile(r"#([A-Za-z0-9_-]+)")
