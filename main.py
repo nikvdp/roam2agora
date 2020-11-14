@@ -6,13 +6,7 @@ from typing import List
 from dataclasses import dataclass
 from collections import defaultdict
 import re
-
-try:
-    # TODO: for debugging only, delete soon
-    from ipdb import set_trace
-except:
-    pass
-from pprint import pprint
+import logging
 
 import click
 
@@ -128,15 +122,15 @@ def process_roam_export(roam_import: List[Page]) -> defaultdict:
         page = flattened_import.block_to_page[block_id]
 
         if PRIVATE_PAGE_TAG in tags:
-            print(
+            logging.debug(
                 f"Got #private_page tag on block {block_id} of page '{page.title}'"
             )
             if output_pages.get(page.title):
-                print(f"Deleting page {page.title}")
+                logging.debug(f"Deleting page {page.title}")
                 del output_pages[page.title]
 
         if PRIVATE_TAG in tags:
-            print(
+            logging.debug(
                 f"Got #private tag on block {block_id} of page '{page.title}'"
             )
             output_pages[page.title] = [
@@ -158,6 +152,17 @@ def sanitize_filename(filename) -> str:
     return filename.lower().replace(" ", "-").replace("'", "").replace(",", "")
 
 
+def setup_logger():
+    logger: logging.RootLogger = logging.getLogger()
+    if os.getenv("DEBUG"):
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(
+            logging.Formatter("%(levelname)s: %(message)s")
+        )
+        logger.addHandler(stream_handler)
+        logger.setLevel(logging.DEBUG)
+
+
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.option(
     "--roam-export-file",
@@ -173,6 +178,7 @@ def sanitize_filename(filename) -> str:
     prompt="Path to save garden files to",
 )
 def main(roam_export_file, output_folder="./agora"):
+    setup_logger()
     roam_import = load_roam_import(roam_export_file)
 
     if not os.path.exists(output_folder):
