@@ -14,7 +14,7 @@ from .roam_types import from_roam_export, Page, Block
 
 
 INLINE_TAG_RE: re.Pattern = re.compile(r"#([A-Za-z0-9_-]+)")
-BACKLINK_TAG_RE: re.Pattern = re.compile(r"#\[\[([^\]]+)]\]")
+BACKLINK_TAG_RE: re.Pattern = re.compile(r"#(\[\[([^\]]+)]\])")
 
 PUBLIC_PAGE_TAG = "public_page"
 PRIVATE_PAGE_TAG = "private_page"
@@ -82,9 +82,11 @@ def collect_relevant_tags(block):
     ]
 
 
-def format_block_recursive(block, indent=2, indent_step=4):
+def format_block_recursive(block, indent=0, indent_step=2):
+    # TODO: there are probably more special characters like this to be taken care of
+    clean_block_string = block.string.replace("#", "\\#")
     indent_str = " " * indent
-    out = f"{indent_str}- {block.string}\n"
+    out = f"{indent_str}- {clean_block_string}\n"
     if block.children and len(block.children) > 0:
         for child in block.children:
             out += format_block_recursive(
