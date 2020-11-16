@@ -82,11 +82,19 @@ def collect_relevant_tags(block):
     ]
 
 
-def format_block_recursive(block, indent=0, indent_step=2):
+def roam_text_to_markdown(roam_text: str):
+    return (
+        roam_text.replace("#", "\\#")
+        .replace("{{[[TODO]]}}", "[ ]")
+        .replace("{{[[DONE]]}}", "[X]")
+    )
+
+
+def format_block_recursive(block: Block, indent=0, indent_step=2) -> str:
     # TODO: there are probably more special characters like this to be taken care of
-    clean_block_string = block.string.replace("#", "\\#")
+    clean_block_text = roam_text_to_markdown(block.string)
     indent_str = " " * indent
-    out = f"{indent_str}- {clean_block_string}\n"
+    out = f"{indent_str}- {clean_block_text}\n"
     if block.children and len(block.children) > 0:
         for child in block.children:
             out += format_block_recursive(
@@ -175,11 +183,11 @@ def setup_logger():
 @click.option(
     "--output-folder",
     "-o",
-    default="./agora",
+    default="./garden",
     type=click.Path(file_okay=False, dir_okay=True),
     prompt="Path to save garden files to",
 )
-def main(roam_export_file, output_folder="./agora"):
+def main(roam_export_file, output_folder="./garden"):
     setup_logger()
     roam_import = load_roam_import(roam_export_file)
 
