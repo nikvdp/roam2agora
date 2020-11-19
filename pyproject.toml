@@ -5,13 +5,14 @@ description = ""
 authors = ["Nik V <github@nikvdp.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.790"
 ipython = "^7.19.0"
 ipdb = "^0.13.4"
+pyinstaller = "^4.1"
 
 [tool.poetry.scripts]
 roam2agora = 'roam2agora.main:main'

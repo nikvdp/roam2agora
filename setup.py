@@ -1,3 +1,5 @@
+# generated via dephell:
+# dephell deps convert --from-path pyproject.toml --from-format poetry --to-path setup.py --to-format setuppy --env=main
 
 # -*- coding: utf-8 -*-
 
@@ -10,19 +12,25 @@ try:
 except ImportError:
     from distutils.core import setup
 
-readme = ''
+readme = ""
 
 setup(
     long_description=readme,
-    name='roam2agora',
-    version='0.1.0',
-    python_requires='==3.*,>=3.8.0',
-    author='Nik V',
-    author_email='github@nikvdp.com',
+    name="roam2agora",
+    version="0.1.0",
+    python_requires="==3.*,>=3.7.0",
+    author="Nik V",
+    author_email="github@nikvdp.com",
     entry_points={"console_scripts": ["roam2agora = roam2agora.main:main"]},
-    packages=['roam2agora'],
+    packages=["roam2agora"],
     package_dir={"": "src"},
     package_data={},
-    install_requires=['click==7.*,>=7.1.2'],
-    extras_require={"dev": ["ipdb==0.*,>=0.13.4", "ipython==7.*,>=7.19.0", "mypy==0.*,>=0.790.0"]},
+    install_requires=["click==7.*,>=7.1.2"],
+    extras_require={
+        "dev": [
+            "ipdb==0.*,>=0.13.4",
+            "ipython==7.*,>=7.19.0",
+            "mypy==0.*,>=0.790.0",
+        ]
+    },
 )
