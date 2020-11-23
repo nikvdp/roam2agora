@@ -210,8 +210,8 @@ def make_exe(dist):
 
     # Invoke `pip install` using a requirements file and add the collected resources
     # to our binary.
-    # exe.add_python_resources(exe.pip_install([CWD]))
-    exe.add_python_resources(exe.pip_install(["-r", CWD + "/requirements.txt"]))
+    exe.add_python_resources(exe.pip_install([CWD]))
+    # exe.add_python_resources(exe.pip_install(["-r", CWD + "/requirements.txt"]))
 
     
 
@@ -219,10 +219,10 @@ def make_exe(dist):
     # context, taking just the resources belonging to the `foo` and `bar`
     # Python packages.
     # # didn't work: TypeError: expected str, bytes or os.PathLike object, not NoneType
-    exe.add_python_resources(exe.read_package_root(
-       path=CWD + "/src",
-       packages=["roam2agora"],
-    ))
+    # exe.add_python_resources(exe.read_package_root(
+    #    path=CWD + "/src",
+    #    packages=["roam2agora"],
+    # ))
 
     # Discover Python files from a virtualenv and add them to our embedded
     # context.
