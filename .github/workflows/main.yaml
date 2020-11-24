@@ -2,44 +2,47 @@ name: Package Application with Pyinstaller
 
 on:
   push:
+    tags: '*'
     branches: [ master, pyinstaller ]
-  pull_request:
-    branches: [ master ]
+  # pull_request:
+  #   branches: [ master ]
 
 jobs:
-  # build-linux:
-  #   # TODO: convert this to use pyoxidizer instead
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #
-  #   - name: Package Application
-  #     uses: JackMcKew/pyinstaller-action-linux@main
-  #     with:
-  #       path: .
-  #
-  #   - uses: actions/upload-artifact@v2
-  #     with:
-  #       name: roam2agora
-  #       path: ./dist/linux/main
-  #
-  # build-windows:
-  #
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #
-  #   - name: Package Application
-  #     uses: JackMcKew/pyinstaller-action-windows@main
-  #     with:
-  #       path: .
-  #
-  #   - uses: actions/upload-artifact@v2
-  #     with:
-  #       name: roam2agora.exe
-  #       path: ./dist/windows/main.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Package Application
+      uses: JackMcKew/pyinstaller-action-linux@main
+      with:
+        path: .
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: roam2agora-linux
+        path: ./dist/linux/main
+
+
+  build-windows:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Package Application
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: .
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: roam2agora-windows.exe
+        path: ./dist/windows/main.exe
+
 
   build-mac:
 
@@ -71,9 +74,7 @@ jobs:
 
           fi
           # ensure conda is on path for the rest of this script
-          if ! echo $PATH | grep -q miniconda; then
-            export PATH=$HOME/miniconda3/bin:$HOME/miniconda2/bin:$PATH
-          fi
+          export PATH=$HOME/miniconda3/bin:$HOME/miniconda2/bin:$PATH
         }
         install_conda
 
@@ -93,14 +94,92 @@ jobs:
         mkdir $GITHUB_WORKSPACE/artifacts
         cp ./dist/main "$GITHUB_WORKSPACE/artifacts/roam2agora"
 
-    # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v3
-
     - name: Upload result
       uses: actions/upload-artifact@v2
       with:
-        name: roam2agora
+        name: roam2agora-mac
         path: ./artifacts/roam2agora
 
 
+  create-release:
+    # takes care of creating a github release object, collecting the artifacts
+    # from the earlier builds and re-uploading them into the release
+    runs-on: ubuntu-latest
+    needs:
+    - build-linux
+    - build-windows
+    - build-mac
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Download artifact
+      # Downloaded artifacts get extracted one per directory! final dir
+      # structure on the server will look like this (It definitely didn't take
+      # me hours to figure this out):
+      #   .
+      #   ├── roam2agora-linux
+      #   │   └── main
+      #   ├── roam2agora-mac
+      #   │   └── roam2agora
+      #   └── roam2agora-windows.exe
+      #       └── main.exe
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: main.yaml
+        workflow_conclusion: success
+
+    - name: Upload Release Asset
+      id: upload-release-asset-lin 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # This pulls from the create_release step above, referencing it's ID to
+        # get its outputs object, which include a `upload_url`. See this blog
+        # post for more info:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        # TODO: have the build phase name these less annoyingly 
+        asset_path: roam2agora-linux/main
+        asset_name: roam2agora-linux
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset
+      id: upload-release-asset-mac 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # This pulls from the create_release step above, referencing it's ID to
+        # get its outputs object, which include a `upload_url`. See this blog
+        # post for more info:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        # TODO: have the build phase name these less annoyingly 
+        asset_path: roam2agora-mac/roam2agora
+        asset_name: roam2agora-mac
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset
+      id: upload-release-asset-win 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        # This pulls from the create_release step above, referencing it's ID to
+        # get its outputs object, which include a `upload_url`. See this blog
+        # post for more info:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        # TODO: have the build phase name these less annoyingly 
+        asset_path: roam2agora-windows.exe/main.exe
+        asset_name: roam2agora-windows.exe
+        asset_content_type: application/octet-stream
 
