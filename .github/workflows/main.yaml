@@ -48,80 +48,59 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: pyoxidizer
+    - name: pyinstaller
       run: |
-        # install_conda() {
-        #   local platform=$(uname)
-        #   local platform=$(uname)
-        #   [[ "$platform" == "Darwin" ]] && platform="MacOSX"
-        #
-        #   if ! which conda &>/dev/null; then
-        #     local miniconda="$(mktemp)"
-        #     curl -L "https://repo.continuum.io/miniconda/Miniconda3-latest-$platform-x86_64.sh" >"$miniconda"
-        #     bash "$miniconda" -b -p $HOME/miniconda3
-        #     rm "$miniconda"
-        #   fi
-        #
-        #   if ! [[ -f ~/.condarc ]]; then
-        #     echo ">>> Writing $HOME/.condarc"
-        #     cat >$HOME/.condarc <<EOF
-        # always_yes: true
-        # channels:
-        #     - conda-forge
-        #     - defaults
-        # EOF
-        #
-        #   fi
-        #   # ensure conda is on path for the rest of this script
-        #   if ! echo $PATH | grep -q miniconda; then
-        #     export PATH=$HOME/miniconda3/bin:$HOME/miniconda2/bin:$PATH
-        #   fi
-        # }
-        # install_conda
-        # echo ">>> PATH: "
-        # echo "$PATH" | tr ':' '\n'  
-        # echo "<<< END PATH. "
-        #
-        # echo "Using conda: '$(which conda)'"
-        # echo ">>> env "
-        # env 
-        # echo "<<< env"
-        #
-        # set -x
-        # $CONDA/bin/conda env update --file environment.yml --name base
-        #
-        # # apparently this weird stuff is how you conda on github actions
-        # # see: https://ben-heil.github.io/2020-08-24-conda-actions/
-        # conda="$CONDA/bin/conda"
-        # # the logn way to install rust
-        # # $conda create -n pyoxidizer rust
-        # # $conda activate pyoxidizer
-        # $conda install rust
+        install_conda() {
+          local platform=$(uname)
+          local platform=$(uname)
+          [[ "$platform" == "Darwin" ]] && platform="MacOSX"
 
-        # install pyoxidizer
-        # TODO: store this as a github artifact and/or build a conda pkg
-        mkdir $HOME/bin
-        export PATH=$PATH:$HOME/bin
-        curl -L https://srv.nikvdp.com/pyoxidizer-darwin.bz2 -o $HOME/bin/pyoxidizer.bz2
-        bunzip2 $HOME/bin/pyoxidizer.bz2
-        chmod +x $HOME/bin/pyoxidizer
+          local miniconda="$(mktemp)"
+          curl -L "https://repo.continuum.io/miniconda/Miniconda3-latest-$platform-x86_64.sh" >"$miniconda"
+          bash "$miniconda" -b -p $HOME/miniconda3
+          rm "$miniconda"
 
-        pyoxidizer build
-        output_dir=./build/x86_64-apple-darwin/debug/install/
+          if ! [[ -f ~/.condarc ]]; then
+            echo ">>> Writing $HOME/.condarc"
+            cat >$HOME/.condarc <<EOF
+        always_yes: true
+        channels:
+            - conda-forge
+            - defaults
+        EOF
 
-        mkdir $HOME/artifacts
-        mv "$output_dir/roam2agora" "$HOME/artifacts"
+          fi
+          # ensure conda is on path for the rest of this script
+          if ! echo $PATH | grep -q miniconda; then
+            export PATH=$HOME/miniconda3/bin:$HOME/miniconda2/bin:$PATH
+          fi
+        }
+        install_conda
+
+        echo ">>> PATH: "
+        echo "$PATH" | tr ':' '\n'  
+        echo "<<< END PATH. "
+
+        export PATH=$HOME/miniconda3/bin:$HOME/miniconda2/bin:$PATH
+
+        conda create -n roam2agora python=3.8 pyinstaller
+        source activate roam2agora
+
+        pip install .
+
+        pyinstaller roam2agora.spec
+
+        mkdir $GITHUB_WORKSPACE/artifacts
+        cp ./dist/main "$GITHUB_WORKSPACE/artifacts/roam2agora"
+
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
 
     - name: Upload result
       uses: actions/upload-artifact@v2
       with:
         name: roam2agora
-        path: build/x86_64-apple-darwin/debug/install/roam2agora
+        path: ./artifacts/roam2agora
 
 
 

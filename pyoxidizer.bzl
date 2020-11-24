@@ -161,9 +161,9 @@ def make_exe(dist):
 
     # Run a Python file when the interpreter starts.
     # # didn't work: ImportError: attempted relative import with no known parent package
-    python_config.run_filename = CWD + "/roam2agora"
+    # python_config.run_filename = CWD + "/roam2agora"
     # # didn't work, couldn't find src module
-    # python_config.run_filename = CWD + "/pyinstaller_entry.py"
+    python_config.run_filename = CWD + "/pyinstaller_entry.py"
     # # didn't work, no rel paths
     # python_config.run_filename = "./src/roam2agora/main.py"
     # # didn't work: ImportError: attempted relative import with no known parent package
@@ -210,7 +210,7 @@ def make_exe(dist):
 
     # Invoke `pip install` using a requirements file and add the collected resources
     # to our binary.
-    exe.add_python_resources(exe.pip_install([CWD]))
+    # exe.add_python_resources(exe.pip_install([CWD]))
     # exe.add_python_resources(exe.pip_install(["-r", CWD + "/requirements.txt"]))
 
     
@@ -219,10 +219,10 @@ def make_exe(dist):
     # context, taking just the resources belonging to the `foo` and `bar`
     # Python packages.
     # # didn't work: TypeError: expected str, bytes or os.PathLike object, not NoneType
-    # exe.add_python_resources(exe.read_package_root(
-    #    path=CWD + "/src",
-    #    packages=["roam2agora"],
-    # ))
+    exe.add_python_resources(exe.read_package_root(
+       path=CWD + "/src",
+       packages=["roam2agora"],
+    ))
 
     # Discover Python files from a virtualenv and add them to our embedded
     # context.
