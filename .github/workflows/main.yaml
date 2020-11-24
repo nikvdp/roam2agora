@@ -7,36 +7,121 @@ on:
     branches: [ master ]
 
 jobs:
-  build-linux:
+  # build-linux:
+  #   # TODO: convert this to use pyoxidizer instead
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #
+  #   - name: Package Application
+  #     uses: JackMcKew/pyinstaller-action-linux@main
+  #     with:
+  #       path: .
+  #
+  #   - uses: actions/upload-artifact@v2
+  #     with:
+  #       name: roam2agora
+  #       path: ./dist/linux/main
+  #
+  # build-windows:
+  #
+  #   runs-on: ubuntu-latest
+  #
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #
+  #   - name: Package Application
+  #     uses: JackMcKew/pyinstaller-action-windows@main
+  #     with:
+  #       path: .
+  #
+  #   - uses: actions/upload-artifact@v2
+  #     with:
+  #       name: roam2agora.exe
+  #       path: ./dist/windows/main.exe
 
-    runs-on: ubuntu-latest
+  build-mac:
+
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Package Application
-      uses: JackMcKew/pyinstaller-action-linux@main
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
       with:
-        path: .
+        python-version: 3.8
 
-    - uses: actions/upload-artifact@v2
+    - name: pyoxidizer
+      run: |
+        # install_conda() {
+        #   local platform=$(uname)
+        #   local platform=$(uname)
+        #   [[ "$platform" == "Darwin" ]] && platform="MacOSX"
+        #
+        #   if ! which conda &>/dev/null; then
+        #     local miniconda="$(mktemp)"
+        #     curl -L "https://repo.continuum.io/miniconda/Miniconda3-latest-$platform-x86_64.sh" >"$miniconda"
+        #     bash "$miniconda" -b -p $HOME/miniconda3
+        #     rm "$miniconda"
+        #   fi
+        #
+        #   if ! [[ -f ~/.condarc ]]; then
+        #     echo ">>> Writing $HOME/.condarc"
+        #     cat >$HOME/.condarc <<EOF
+        # always_yes: true
+        # channels:
+        #     - conda-forge
+        #     - defaults
+        # EOF
+        #
+        #   fi
+        #   # ensure conda is on path for the rest of this script
+        #   if ! echo $PATH | grep -q miniconda; then
+        #     export PATH=$HOME/miniconda3/bin:$HOME/miniconda2/bin:$PATH
+        #   fi
+        # }
+        # install_conda
+        # echo ">>> PATH: "
+        # echo "$PATH" | tr ':' '\n'  
+        # echo "<<< END PATH. "
+        #
+        # echo "Using conda: '$(which conda)'"
+        # echo ">>> env "
+        # env 
+        # echo "<<< env"
+        #
+        # set -x
+        # $CONDA/bin/conda env update --file environment.yml --name base
+        #
+        # # apparently this weird stuff is how you conda on github actions
+        # # see: https://ben-heil.github.io/2020-08-24-conda-actions/
+        # conda="$CONDA/bin/conda"
+        # # the logn way to install rust
+        # # $conda create -n pyoxidizer rust
+        # # $conda activate pyoxidizer
+        # $conda install rust
+
+        # install pyoxidizer
+        # TODO: store this as a github artifact and/or build a conda pkg
+        mkdir $HOME/bin
+        export PATH=$PATH:$HOME/bin
+        curl -L https://srv.nikvdp.com/pyoxidizer-darwin.bz2 -o $HOME/bin/pyoxidizer.bz2
+        bunzip2 $HOME/bin/pyoxidizer.bz2
+        chmod +x $HOME/bin/pyoxidizer
+
+        pyoxidizer build
+        output_dir=./build/x86_64-apple-darwin/debug/install/
+
+        mkdir $HOME/artifacts
+        mv "$output_dir/roam2agora" "$HOME/artifacts"
+
+    - name: Upload result
+      uses: actions/upload-artifact@v2
       with:
         name: roam2agora
-        path: ./dist/linux/main
+        path: build/x86_64-apple-darwin/debug/install/roam2agora
 
-  build-windows:
 
-    runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Package Application
-      uses: JackMcKew/pyinstaller-action-windows@main
-      with:
-        path: .
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: roam2agora.exe
-        path: ./dist/windows/main.exe
