@@ -1,8 +1,0 @@
-name: pyoxidizer
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - rust=1.48.0=h694c41f_0
-  - rust-std-x86_64-apple-darwin=1.48.0=h059895a_0
-prefix: /Users/runners/miniconda3/envs/pyoxidizer

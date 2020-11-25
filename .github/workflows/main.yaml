@@ -2,10 +2,8 @@ name: Package Application with Pyinstaller
 
 on:
   push:
-    tags: '*'
-    branches: [ master, pyinstaller ]
-  # pull_request:
-  #   branches: [ master ]
+    # only build when we have a tag starting with v (e.g. v0.0.1)
+    tags: 'v*'
 
 jobs:
 
