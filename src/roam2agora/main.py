@@ -22,6 +22,9 @@ PRIVATE_PAGE_TAG = "private_page"
 PUBLIC_TAG = "public"
 PRIVATE_TAG = "private"
 
+# filled during main()
+config = None
+
 
 def load_roam_import(roam_json_file) -> List[Page]:
     with open(roam_json_file) as f:
@@ -117,13 +120,14 @@ def process_roam_export(roam_import: List[Page]) -> defaultdict:
     for block_id, block in blocks_by_id.items():
         tags = collect_relevant_tags(block.string)
 
-        if PUBLIC_PAGE_TAG in tags:
+        public_page: bool = PUBLIC_PAGE_TAG in tags or config.public_by_default
+        if public_page:
             page = flattened_import.block_to_page[block_id]
             output_pages[
                 flattened_import.block_to_page[block_id].title
             ] += page.children
 
-        if PUBLIC_TAG in tags:
+        if PUBLIC_TAG in tags and not public_page:
             try:
                 output_pages[
                     flattened_import.block_to_page[block_id].title
@@ -138,11 +142,7 @@ def process_roam_export(roam_import: List[Page]) -> defaultdict:
         tags = collect_relevant_tags(block.string)
         page = flattened_import.block_to_page[block_id]
 
-        for ref in refs:
-            if ref in blocks_by_id:
-                block.string = block.string.replace(
-                    f"(({ref}))", blocks_by_id[ref].string
-                )
+        private_blocks = []
 
         if PRIVATE_PAGE_TAG in tags:
             logging.debug(
@@ -159,20 +159,47 @@ def process_roam_export(roam_import: List[Page]) -> defaultdict:
             output_pages[page.title] = [
                 b for b in output_pages[page.title] if b.uid != block_id
             ]
+            # mark private blocks so that we don't expose them via block refs
+            private_blocks.append(block_id)
 
             # recursively iterate through and make sure the private block isn't
             # nested
             for block in output_pages[page.title]:
                 delete_child_blocks(page, block_id)
 
+        # it's important that this happens *after* private tags are removed,
+        # otherwise private block content could be exposed via block
+        # transclusion
+        # TODO: add a test for references to private blocks
+        if config.follow_references:
+            for ref in refs:
+                if ref in blocks_by_id and ref not in private_blocks:
+                    block.string = block.string.replace(
+                        f"(({ref}))", blocks_by_id[ref].string
+                    )
+
     return output_pages
+
+
+@dataclass
+class Config:
+
+    public_by_default: bool
+
+    """ aka: transclude blocks """
+    follow_references: bool
 
 
 def sanitize_filename(filename) -> str:
     # stolen from agora code here:
     # https://github.com/flancian/agora-server/blob/39453d8b0758a6276face99fc7b78576e48136a0/app/db.py#L42
-    # TODO: probably should replace slashes too lest roam namespace pages screw up dir structure
-    return filename.lower().replace(" ", "-").replace("'", "").replace(",", "")
+    return (
+        filename.lower()
+        .replace(" ", "-")
+        .replace("'", "")
+        .replace(",", "")
+        .replace("/", "_")
+    )
 
 
 def setup_logger():
@@ -200,7 +227,22 @@ def setup_logger():
     type=click.Path(file_okay=False, dir_okay=True),
     prompt="Path to save garden files to",
 )
-def main(roam_export_file, output_folder="./garden"):
+@click.option("--follow-refs/--dont-follow-refs", " /-d", default=True)
+@click.option("--default-public/--default-closed", "-p", default=False)
+def main(
+    roam_export_file,
+    output_folder="./garden",
+    follow_refs=True,
+    default_public=True,
+):
+
+    global config
+    config = Config(
+        public_by_default=default_public,
+        follow_references=follow_refs,
+    )
+    print("Config: ", config)
+
     setup_logger()
     roam_import = load_roam_import(roam_export_file)
 
