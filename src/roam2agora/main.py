@@ -15,6 +15,7 @@ from .roam_types import from_roam_export, Page, Block
 
 INLINE_TAG_RE: re.Pattern = re.compile(r"#([A-Za-z0-9_-]+)")
 BACKLINK_TAG_RE: re.Pattern = re.compile(r"#(\[\[([^\]]+)]\])")
+REFERENCE_RE: re.Pattern = re.compile(r"\(\(([^\)]{9})\)\)")
 
 PUBLIC_PAGE_TAG = "public_page"
 PRIVATE_PAGE_TAG = "private_page"
@@ -72,6 +73,10 @@ def build_flattened_blocklist(roam_pages: List[Page]):
     )
 
 
+def collect_refs(block_string):
+    return REFERENCE_RE.findall(block_string)
+
+
 def collect_relevant_tags(block):
     return [
         tag
@@ -127,9 +132,17 @@ def process_roam_export(roam_import: List[Page]) -> defaultdict:
                 raise e
 
     # do a second pass to remove anything that was marked private
+    # and perform any block transclusions
     for block_id, block in blocks_by_id.items():
+        refs = collect_refs(block.string)
         tags = collect_relevant_tags(block.string)
         page = flattened_import.block_to_page[block_id]
+
+        for ref in refs:
+            if ref in blocks_by_id:
+                block.string = block.string.replace(
+                    f"(({ref}))", blocks_by_id[ref].string
+                )
 
         if PRIVATE_PAGE_TAG in tags:
             logging.debug(
