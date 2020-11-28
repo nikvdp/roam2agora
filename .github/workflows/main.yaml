@@ -53,7 +53,6 @@ jobs:
       run: |
         install_conda() {
           local platform=$(uname)
-          local platform=$(uname)
           [[ "$platform" == "Darwin" ]] && platform="MacOSX"
 
           local miniconda="$(mktemp)"
@@ -85,7 +84,7 @@ jobs:
         conda create -n roam2agora python=3.8 pyinstaller
         source activate roam2agora
 
-        pip install .
+        python setup.py install
 
         pyinstaller roam2agora.spec
 
@@ -134,7 +133,7 @@ jobs:
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: main.yaml
-        workflow_conclusion: success
+        commit: ${{github.event.pull_request.head.sha}}
 
     - name: Upload Release Asset
       id: upload-release-asset-lin 
